@@ -1,46 +1,104 @@
 #include <iostream>
-#include <queue>
 #include <stack>
 #include <string>
-#include <regex>
-#include <algorithm>
+#include <vector>
+#include <map>
 
 using namespace std;
 
-queue<int> get_queue_for_nums(string expression){
-    queue<int> nums;
-    regex find_nums("\\d+");
-    sregex_iterator it(expression.begin(), expression.end(), find_nums);
-    sregex_iterator end;
-    while (it != end){
-        nums.push(stoi(it->str()));
-        it++;
-    }
-    return nums;
+vector<string> get_token(string& expression) {
+	vector<string> tokens;
+	string num;
+	for (char c : expression)
+	{
+		if (isdigit(c))
+			num += c;
+		else
+		{
+			if (!num.empty())
+			{
+				tokens.push_back(num);
+				num.clear();
+			}
+			if (!isspace(c))
+				tokens.push_back(string(1, c));
+		}
+	}
+	return tokens;
 }
 
-stack<char> get_stack_for_operators(string expression){
-    expression.erase(remove_if(expression.begin(), expression.end(), ::isspace), expression.end());
-    stack<char> operators;
-    for(char ch: expression){
-        if(!isdigit(ch) && ch != '(' && ch != ')')
-            operators.push(ch);
-    }
-
-    return operators;
+vector<string> convert_to_postfix(vector<string>& tokens)
+{
+	stack<string> operators;
+	vector<string> output;
+	map<string, int> precedence =
+	{
+		{"(", 0}, {"*", 2}, {"/", 2}, {"+", 1}, {"-", 1}
+	};
+	for (string tk : tokens)
+	{
+		if (isdigit(tk[0]))
+			output.push_back(tk);
+		else if (tk == "(")
+			operators.push(tk);
+		else if (tk == ")")
+		{
+			while (operators.top() != "(")
+			{
+				output.push_back(operators.top());
+				operators.pop();
+			}
+			operators.pop();
+		}
+		else
+		{
+			while (!operators.empty() && precedence[operators.top()] >= precedence[tk])
+			{
+				output.push_back(operators.top());
+				operators.pop();
+			}
+			operators.push(tk);
+		}
+	}
+	while (!operators.empty())
+	{
+		output.push_back(operators.top());
+		operators.pop();
+	}
+	return output;
 }
 
-int main(){
-    string expression = "3 + 5 * (10 - 4)";
-    queue<int> nums = get_queue_for_nums(expression);
-    stack<char> operators = get_stack_for_operators(expression);
-    while (!nums.empty()){
-        cout << nums.front() << " ";
-        nums.pop();
-    }
-    while (!operators.empty()){
-        cout << operators.top() << " ";
-        operators.pop();
-    }
-    cout << endl;
+double calculate_postfix(vector<string>& postfix)
+{
+	stack<double> calc_stack;
+	for (string tk : postfix)
+	{
+		if (isdigit(tk[0]))
+			calc_stack.push(stod(tk));
+		else
+		{
+			double b = calc_stack.top();
+			calc_stack.pop();
+			double a = calc_stack.top();
+			calc_stack.pop();
+			if (tk == "+")
+				calc_stack.push(a + b);
+			else if (tk == "-")
+				calc_stack.push(a - b);
+			else if (tk == "*")
+				calc_stack.push(a * b);
+			else if (tk == "/")
+				calc_stack.push(a / b);
+		}
+	}
+	return calc_stack.top();
+}
+
+int main()
+{
+	string expression = "3 + 4 * 2 / (1 - 5)";
+	vector<string> token = get_token(expression);
+	vector<string> postfix = convert_to_postfix(token);
+	double result = calculate_postfix(postfix);
+	cout << result << endl;
 }
