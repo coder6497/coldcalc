@@ -24,10 +24,22 @@ void CalcUI::onNumsBtnClicked(QAbstractButton *btn)
 void CalcUI::on_pushButton_13_clicked()
 {
     string expression = ui->lineEdit->text().toStdString();
-    vector<string> tokens = get_token(expression);
-    vector<string> postfix = convert_to_postfix(tokens);
-    double result = calculate_postfix(postfix);
-    ui->lineEdit->setText(QString::number(result));
+    if (valid_input(expression))
+    {
+        vector<string> tokens = get_token(expression);
+        if (valid_brackets(expression))
+        {
+            vector<string> postfix = convert_to_postfix(tokens);
+            double result = calculate_postfix(postfix);
+            ui->lineEdit->setText(QString::number(result));
+        }
+        else
+            ui->lineEdit->setText("ERROR");
+
+    }
+    else
+        ui->lineEdit->setText("ERROR");
+
 }
 
 void CalcUI::on_pushButton_15_clicked()
