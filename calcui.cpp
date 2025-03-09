@@ -5,19 +5,22 @@
 CalcUI::CalcUI(QWidget *parent) : QWidget(parent), ui(new Ui::CalcUI)
 {
     ui->setupUi(this);
-    setFixedSize(600, 650);
+    setFixedSize(560, 650);
     QPalette pal = palette();
     pal.setBrush(QPalette::Window, QBrush(QColor(245, 245, 220), Qt::SolidPattern));
     setPalette(pal);
 
-    connect(ui->nums_group, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked), this, &CalcUI::onNumsBtnClicked);
+    connect(ui->nums_group, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked), this, &CalcUI::onNumsBtnClicked);
 }
 
 CalcUI::~CalcUI() { delete ui; }
 
 void CalcUI::onNumsBtnClicked(QAbstractButton *btn)
 {
-    ui->lineEdit->insert(btn->text());
+    if (btn->text() == "√")
+        ui->lineEdit->insert("^0.5");
+    else
+        ui->lineEdit->insert(btn->text()[0]);
 }
 
 void CalcUI::on_pushButton_13_clicked()
