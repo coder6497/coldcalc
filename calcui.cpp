@@ -5,7 +5,7 @@
 CalcUI::CalcUI(QWidget *parent) : QWidget(parent), ui(new Ui::CalcUI)
 {
     ui->setupUi(this);
-    setFixedSize(450, 650);
+    setFixedSize(600, 650);
     QPalette pal = palette();
     pal.setBrush(QPalette::Window, QBrush(QColor(245, 245, 220), Qt::SolidPattern));
     setPalette(pal);
@@ -18,7 +18,6 @@ CalcUI::~CalcUI() { delete ui; }
 void CalcUI::onNumsBtnClicked(QAbstractButton *btn)
 {
     ui->lineEdit->insert(btn->text());
-
 }
 
 void CalcUI::on_pushButton_13_clicked()

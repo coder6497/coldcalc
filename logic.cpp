@@ -1,16 +1,24 @@
 #include <logic.h>
 
-bool valid_input(string& expression)
+double factorial(double n)
+{
+    if (n == 1)
+        return n;
+    else
+        return n * factorial(n - 1);
+}
+
+bool valid_input(string& expression) //Валидируем ввод  (чтобы юзер не писал всякую херню, приводящую к падению приложения)
 {
     for (char c : expression)
     {
-        if (isdigit(c) || c == '(' || c == ')' || c == '*' || c == '-' || c == '+' || c == '/')
+        if (isdigit(c) || c == '(' || c == ')' || c == '*' || c == '-' || c == '+' || c == '/' || c == '^' || c == '!')
             return true;
     }
     return false;
 }
 
-bool valid_brackets(string& expression)
+bool valid_brackets(string& expression) // Проверяем на правильные скобки ()()(())
 {
     stack<char> brackets;
     for (char c : expression)
@@ -33,22 +41,25 @@ vector<string> get_token(string& expression)
 {
     vector<string> tokens;
     string num;
-    for (char c : expression)
+    string func;
+    for (int i = 0; i < expression.length(); i++)
     {
-        if (isdigit(c))
-            num += c;
+        if (isdigit(expression[i]) || expression[i] == '.' || expression[i] == '!') // Проверяем символы на числа дроби и функции
+            num += expression[i];
         else
         {
-            if (!num.empty())
+            if (!num.empty()) // Добавляем текущее число в вектор с токенами
             {
                 tokens.push_back(num);
                 num.clear();
             }
-            if (!isspace(c))
-                tokens.push_back(string(1, c));
+            if (!isspace(expression[i])) // проверяем на отсутсвие пробелов и приобразуем символ в односимвольную строку
+            {
+                tokens.push_back(string(1, expression[i]));
+            }
         }
     }
-    if (!num.empty())
+    if (!num.empty()) // Докидываем оставшиеся  числа
         tokens.push_back(num);
     return tokens;
 }
@@ -59,26 +70,26 @@ vector<string> convert_to_postfix(vector<string>& tokens)
     vector<string> output;
     map<string, int> precedence =
         {
-            {"(", 0}, {"*", 2}, {"/", 2}, {"+", 1}, {"-", 1}
+            {"(", 0}, {"^", 3}, {"*", 2}, {"/", 2}, {"+", 1}, {"-", 1} // Приоритет операторов
         };
     for (string tk : tokens)
     {
-        if (isdigit(tk[0]))
+        if (isdigit(tk[0])) // Если число добавляем в очередь
             output.push_back(tk);
-        else if (tk == "(")
+        else if (tk == "(") // Если ( то в стек операторов
             operators.push(tk);
-        else if (tk == ")")
+        else if (tk == ")") // Если ) то обрабатываем операторы пока не встретим скобку
         {
-            while (operators.top() != "(")
+            while (operators.top() != "(") // Добавляем элементы из стека в очередь
             {
                 output.push_back(operators.top());
                 operators.pop();
             }
-            operators.pop();
+            operators.pop(); // Удаляем (
         }
         else
         {
-            while (!operators.empty() && precedence[operators.top()] >= precedence[tk])
+            while (!operators.empty() && precedence[operators.top()] >= precedence[tk]) // Проверяем приоритет и на пустоту стека
             {
                 output.push_back(operators.top());
                 operators.pop();
@@ -86,7 +97,7 @@ vector<string> convert_to_postfix(vector<string>& tokens)
             operators.push(tk);
         }
     }
-    while (!operators.empty())
+    while (!operators.empty()) // Добавляем все остальные операторы
     {
         output.push_back(operators.top());
         operators.pop();
@@ -94,7 +105,7 @@ vector<string> convert_to_postfix(vector<string>& tokens)
     return output;
 }
 
-bool valid_operation(vector<string>& postfix)
+bool valid_operation(vector<string>& postfix) // Проверяем на кол-во чисел и операторов для корректной записи
 {
     vector<string> nums;
     vector<string> operators;
@@ -102,7 +113,7 @@ bool valid_operation(vector<string>& postfix)
     {
         if (isdigit(tk[0]))
             nums.push_back(tk);
-        else if (tk == "*" || tk == "/" || tk == "-" || tk == "+")
+        else if (tk == "*" || tk == "/" || tk == "-" || tk == "+" || tk == "^" || tk == "!")
             operators.push_back(tk);
     }
     if (nums.size() - 1 == operators.size())
@@ -118,7 +129,12 @@ double calculate_postfix(vector<string>& postfix)
         for (string tk : postfix)
         {
             if (isdigit(tk[0]))
-                calc_stack.push(stod(tk));
+            {
+                double num = stod(tk);
+                if (isdigit(tk[0]) && tk[1] == '!') // Проверяем если следущий элемент токена функция
+                    num = factorial(tk[0] - '0'); // Расчитываем на месте
+                calc_stack.push(num);
+            }
             else
             {
                 double b = calc_stack.top();
@@ -133,6 +149,8 @@ double calculate_postfix(vector<string>& postfix)
                     calc_stack.push(a * b);
                 else if (tk == "/")
                     calc_stack.push(a / b);
+                else if (tk == "^")
+                    calc_stack.push(pow(a, b));
             }
         }
         return calc_stack.top();
