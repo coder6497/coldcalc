@@ -999,11 +999,6 @@ QPushButton:pressed {
      </attribute>
     </widget>
    </widget>
-   <widget class="QWidget" name="tab_4">
-    <attribute name="title">
-     <string>Вычисления</string>
-    </attribute>
-   </widget>
   </widget>
  </widget>
  <resources/>
